@@ -4,7 +4,6 @@ import chisel3._
 import chiseltest._
 import org.scalatest._
 import matchers.should.Matchers._
-import org.scalatest.matchers
 import org.scalatest.flatspec.AnyFlatSpec
 
 class ThreadSafetyLocatorTest extends AnyFlatSpec with ChiselScalatestTester {
@@ -22,7 +21,7 @@ class ThreadSafetyLocatorTest extends AnyFlatSpec with ChiselScalatestTester {
         }.join
       }
     }.getMessage()
-    exceptionMessage should include ("ThreadSafetyLocatorTest.scala:15")
-    exceptionMessage should include ("ThreadSafetyLocatorTest.scala:18")
+    exceptionMessage should include ("ThreadSafetyLocatorTest.scala:16")
+    exceptionMessage should include ("ThreadSafetyLocatorTest.scala:19")
   }
 }
