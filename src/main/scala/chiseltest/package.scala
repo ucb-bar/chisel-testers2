@@ -113,7 +113,7 @@ package object chiseltest {
         require(x.binaryPoint == value.binaryPoint, "binary point mismatch")
         pokeBits(x, value.litValue)
       case (x: Record, value: Record) => {
-        require(DataMirror.checkTypeEquivalence(x, value), s"Record type mismatch")
+        require(DataMirror.checkTypeEquivalence(value, x) || DataMirror.checkTypeEquivalence(x, value), s"Record type mismatch")
         (x.elements.zip(value.elements)).foreach {
           case ((_, x), (_, value)) =>
             x.poke(value)
@@ -176,7 +176,7 @@ package object chiseltest {
         require(x.binaryPoint == value.binaryPoint, "binary point mismatch")
         Context().backend.expectBits(x, value.litValue, message, Some(BitsDecoders.fixedToString(x.binaryPoint)), stale)
       case (x: Record, value: Record) => {
-        require(DataMirror.checkTypeEquivalence(x, value), s"Record type mismatch")
+        require(DataMirror.checkTypeEquivalence(value, x) || DataMirror.checkTypeEquivalence(x, value), s"Record type mismatch")
         (x.elements.zip(value.elements)).foreach {
           case ((_, x), (_, value)) =>
             x.expectWithStale(value, message, stale)
