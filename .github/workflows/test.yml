@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        scala: [2.12.13, 2.13.5]
+        scala: [2.12.14, 2.13.5]
 
     steps:
       - name: Checkout
@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        scala: [2.12.13, 2.13.6]
+        scala: [2.12.14, 2.13.6]
 
     steps:
       - name: Checkout
