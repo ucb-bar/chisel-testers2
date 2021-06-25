@@ -423,7 +423,7 @@ trait ThreadedBackend[T <: Module] extends BackendInterface {
       }
       if (timescope.closedTime.isDefined) { // if this timescope is closed, ensure there are no children
         if (overridingTimescopes.nonEmpty) {
-          throw new ThreadOrderDependentException(s"Non-enclosed timescopes")
+          throw new ThreadOrderDependentException(s"Non-enclosed timescopes detected. Did you forget to call join after fork?")
         }
       }
       if (overridingTimescopes.length > 1) { // multiple overlapping pokes, is an error
