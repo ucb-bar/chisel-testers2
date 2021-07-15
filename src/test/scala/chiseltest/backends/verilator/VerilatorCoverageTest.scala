@@ -2,7 +2,7 @@
 
 package chiseltest.backends.verilator
 
+import chiseltest.VerilatorBackendAnnotation
 import chiseltest.coverage.SimulatorCoverageTest
-import chiseltest.internal.VerilatorBackendAnnotation
 
 class VerilatorCoverageTest extends SimulatorCoverageTest("Verilator", VerilatorBackendAnnotation) {}

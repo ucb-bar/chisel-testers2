@@ -5,7 +5,6 @@ package chiseltest.experimental.tests
 import chisel3._
 import chiseltest._
 import chiseltest.experimental.TestOptionBuilder._
-import chiseltest.internal.VerilatorBackendAnnotation
 import org.scalatest.freespec.AnyFreeSpec
 
 class HasOddWidthSInt extends Module {

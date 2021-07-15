@@ -4,6 +4,7 @@ package chiseltest
 
 import chiseltest.internal._
 import chisel3.Module
+import chiseltest.simulator.{SimulatorAnnotation, TreadleBackendAnnotation}
 import firrtl.AnnotationSeq
 
 package object defaults {
@@ -17,10 +18,10 @@ package object defaults {
     * @return                a backend for the dut type
     */
   def createDefaultTester[T <: Module](dutGen: () => T, annotationSeq: AnnotationSeq): BackendInstance[T] = {
-    val backend = annotationSeq.collectFirst { case x: BackendAnnotation =>
-      x
-    }.getOrElse(TreadleBackendAnnotation)
-
-    backend.executive.start(dutGen, annotationSeq)
+    // if there is not backend specified, use treadle
+    val hasSimulator = annotationSeq.exists(_.isInstanceOf[SimulatorAnnotation])
+    val annos: AnnotationSeq = if (hasSimulator) { annotationSeq }
+    else { TreadleBackendAnnotation +: annotationSeq }
+    BackendExecutive.start(dutGen, annos)
   }
 }

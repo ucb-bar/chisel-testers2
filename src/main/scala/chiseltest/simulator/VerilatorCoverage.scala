@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package chiseltest.legacy.backends.verilator
+package chiseltest.simulator
 
 import chiseltest.coverage.{Coverage, ModuleInstancesAnnotation, ModuleInstancesPass}
 import firrtl._
@@ -35,7 +35,7 @@ object VerilatorCoverage {
     Coverage.collectCoverageAnnotations(annos) ++ annos.collect { case a: OrderedCoverPointsAnnotation => a }
   }
 
-  def loadCoverage(annos: AnnotationSeq, coverageData: Path): List[(String, Long)] = {
+  def loadCoverage(annos: AnnotationSeq, coverageData: os.Path): List[(String, Long)] = {
     val entries = parseCoverageData(coverageData)
     verilatorCoverageToCoverageMap(entries, annos)
   }
@@ -72,11 +72,10 @@ object VerilatorCoverage {
     }
   }
 
-  private def parseCoverageData(coverageData: Path): List[CoverageEntry] = {
-    assert(Files.exists(coverageData), f"Could not find coverage file: $coverageData")
-    val src = Source.fromFile(coverageData.toString)
-    val entries = src.getLines().flatMap(parseLine).toList
-    src.close()
+  private def parseCoverageData(coverageData: os.Path): List[CoverageEntry] = {
+    assert(os.exists(coverageData), f"Could not find coverage file: $coverageData")
+    val src = os.read.lines(coverageData)
+    val entries = src.flatMap(parseLine).toList
     entries.sortBy(_.line)
   }
 

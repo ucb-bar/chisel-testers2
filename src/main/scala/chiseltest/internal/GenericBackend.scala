@@ -1,22 +1,21 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package chiseltest.backends.treadle
+package chiseltest.internal
 
-import chiseltest.internal._
 import chiseltest.{ClockResolutionException, Region, TimeoutException}
 import chisel3._
 import chiseltest.coverage.{Coverage, TestCoverage}
-import treadle.TreadleTester
+import chiseltest.simulator.SimulatorContext
 import firrtl.AnnotationSeq
 
 import scala.collection.mutable
 
-// TODO: is Seq[CombinationalPath] the right API here? It's unclear where name -> Data resolution should go
-class TreadleBackend[T <: Module](
+/** Chiseltest threaded backend using the generic SimulatorContext abstraction from [[chiseltest.simulator]] */
+class GenericBackend[T <: Module](
   val dut:                T,
   val dataNames:          Map[Data, String],
   val combinationalPaths: Map[Data, Set[Data]],
-  tester:                 TreadleTester,
+  tester:                 SimulatorContext,
   coverageAnnotations:    AnnotationSeq)
     extends BackendInstance[T]
     with ThreadedBackend[T] {
@@ -25,7 +24,7 @@ class TreadleBackend[T <: Module](
   // Debug utility functions
   //
   val verbose: Boolean = false // hard-coded debug flag
-  def debugLog(str: => String) {
+  def debugLog(str: => String): Unit = {
     if (verbose) println(str)
   }
 
@@ -143,12 +142,14 @@ class TreadleBackend[T <: Module](
     }
   }
 
+  private def clockName = dut.clock.name
+
   override def run(testFn: T => Unit): AnnotationSeq = {
     rootTimescope = Some(new RootTimescope)
     val mainThread = new TesterThread(
       () => {
         tester.poke("reset", 1)
-        tester.step(1)
+        tester.step(List(clockName), 1)
         tester.poke("reset", 0)
 
         testFn(dut)
@@ -192,7 +193,7 @@ class TreadleBackend[T <: Module](
           }
         }
 
-        tester.step(1)
+        tester.step(List(clockName), 1)
       }
     } finally {
       rootTimescope = None
@@ -204,7 +205,7 @@ class TreadleBackend[T <: Module](
         }
       }
 
-      tester.report() // needed to dump VCDs
+      tester.finish() // needed to dump VCDs
     }
     generateTestCoverageAnnotation() +: coverageAnnotations
   }

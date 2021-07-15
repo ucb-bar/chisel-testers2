@@ -10,7 +10,7 @@ import chiseltest.experimental.TestOptionBuilder._
 import chiseltest.internal._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-
+/*
 class VcsCoverageTests extends AnyFlatSpec with ChiselScalatestTester with Matchers {
   behavior of "Testers2"
 
@@ -91,3 +91,4 @@ class VcsCoverageTests extends AnyFlatSpec with ChiselScalatestTester with Match
     output.contains("-cm line+tgl+branch+cond+assert") should be(true)
   }
 }
+*/

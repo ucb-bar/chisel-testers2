@@ -1,26 +1,27 @@
-package chiseltest.legacy.backends.verilator
+// SPDX-License-Identifier: Apache-2.0
 
-import chisel3.Module
-import scala.sys.process._
+package chiseltest.simulator.ipc
 
-/** Generates the Module specific verilator harness cpp file for verilator compilation
-  */
-object VerilatorCppHarnessGenerator {
-  // example version string: Verilator 4.038 2020-07-11 rev v4.038
-  lazy val verilatorVersion: (Int, Int) = { // (major, minor)
-    val versionSplitted = "verilator --version".!!.trim().split(' ')
-    assert(
-      versionSplitted.length > 1 && versionSplitted.head == "Verilator",
-      s"Unknown verilator version string: ${versionSplitted.mkString(" ")}"
-    )
-    val Array(maj, min) = versionSplitted(1).split('.').map(_.toInt)
-    println(s"Detected Verilator version $maj.$min")
-    (maj, min)
-  }
-  def codeGen(dut: Module, vcdFilePath: String, targetDir: String): String = {
+import chiseltest.simulator.TopmoduleInfo
+
+/** Generates the Module specific verilator harness cpp file for verilator compilation */
+private[chiseltest] object VerilatorCppHarnessGenerator {
+  def codeGen(
+    toplevel:     TopmoduleInfo,
+    vcdFilePath:  String,
+    targetDir:    String,
+    majorVersion: Int,
+    minorVersion: Int
+  ): String = {
+
+    require(toplevel.clocks.length <= 1, "Multi clock circuits are currently not supported!")
+    val clockName = toplevel.clocks.headOption
+    val clockLow = clockName.map("dut->" + _ + " = 0;").getOrElse("")
+    val clockHigh = clockName.map("dut->" + _ + " = 1;").getOrElse("")
+
     val codeBuffer = new StringBuilder
 
-    def pushBack(vector: String, pathName: String, width: BigInt) {
+    def pushBack(vector: String, pathName: String, width: BigInt): Unit = {
       if (width == 0) {
         // Do nothing- 0 width wires are removed
       } else if (width <= 8) {
@@ -47,19 +48,17 @@ object VerilatorCppHarnessGenerator {
       }
     }
 
-    val (inputs, outputs) = getPorts(dut, "->")
-    val dutName = dut.name
+    val dutName = toplevel.name
     val dutApiClassName = dutName + "_api_t"
     val dutVerilatorClassName = "V" + dutName
-    val (verilatorMajor, verilatorMinor) = verilatorVersion
 
     val coverageInit =
-      if (verilatorMajor >= 4 && verilatorMinor >= 202)
+      if (majorVersion >= 4 && minorVersion >= 202)
         """|Verilated::defaultContextp()->coveragep()->forcePerInstance(true);
            |""".stripMargin
       else ""
 
-    val verilatorRunFlushCallback = if (verilatorMajor >= 4 && verilatorMinor >= 38) {
+    val verilatorRunFlushCallback = if (majorVersion >= 4 && minorVersion >= 38) {
       "Verilated::runFlushCallbacks();\nVerilated::runExitCallbacks();\n"
     } else {
       "Verilated::flushCall();\n"
@@ -88,17 +87,16 @@ class $dutApiClassName: public sim_api_t<VerilatorDataWrapper*> {
         sim_data.signals.clear();
 
 """)
-    inputs.toList.foreach { case (node, name) =>
+    toplevel.inputs.foreach { case (name, width) =>
       // replaceFirst used here in case port name contains the dutName
-      pushBack("inputs", name.replaceFirst(dutName, "dut"), node.getWidth)
+      pushBack("inputs", "dut->" + name, width)
     }
-    outputs.toList.foreach { case (node, name) =>
+    toplevel.outputs.foreach { case (name, width) =>
       // replaceFirst used here in case port name contains the dutName
-      pushBack("outputs", name.replaceFirst(dutName, "dut"), node.getWidth)
+      pushBack("outputs", "dut->" + name, width)
     }
-    pushBack("signals", "dut->reset", 1)
     codeBuffer.append(
-      s"""        sim_data.signal_map["${dut.reset.pathName}"] = 0;
+      s"""
     }
 #if VM_TRACE
      void init_dump(VerilatedVcdC* _tfp) { tfp = _tfp; }
@@ -126,25 +124,20 @@ class $dutApiClassName: public sim_api_t<VerilatorDataWrapper*> {
     virtual inline size_t get_chunk(VerilatorDataWrapper* &sig) {
         return sig->get_num_words();
     }
-    virtual inline void reset() {
-        dut->reset = 1;
-        step();
-    }
     virtual inline void start() {
-        dut->reset = 0;
     }
     virtual inline void finish() {
         dut->eval();
         is_exit = true;
     }
     virtual inline void step() {
-        dut->clock = 0;
+        $clockLow
         dut->eval();
 #if VM_TRACE
         if (tfp) tfp->dump(main_time);
 #endif
         main_time++;
-        dut->clock = 1;
+        $clockHigh
         dut->eval();
 #if VM_TRACE
         if (tfp) tfp->dump(main_time);

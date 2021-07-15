@@ -3,7 +3,7 @@
 package chiseltest.experimental
 
 import chisel3.stage.ChiselCli
-import chiseltest.internal.{TreadleBackendAnnotation, VerilatorBackendAnnotation, WriteVcdAnnotation}
+import chiseltest.simulator.{TreadleBackendAnnotation, VerilatorBackendAnnotation, WriteVcdAnnotation}
 import firrtl.options.Shell
 import firrtl.stage.FirrtlCli
 

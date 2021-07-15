@@ -5,7 +5,7 @@ package chiseltest
 import chiseltest.internal._
 import chiseltest.experimental.{sanitizeFileName, ChiselTestShell}
 import chisel3.Module
-import chiseltest.internal.WriteVcdAnnotation
+import chiseltest.simulator.WriteVcdAnnotation
 import firrtl.AnnotationSeq
 import org.scalatest._
 import org.scalatest.exceptions.TestFailedException
