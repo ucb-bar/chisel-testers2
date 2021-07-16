@@ -14,7 +14,8 @@ import java.io.{ByteArrayOutputStream, File, PrintStream}
 class VerilatorCoverageTests extends AnyFlatSpec with ChiselScalatestTester with Matchers {
   behavior of "Testers2"
 
-  it should "allow specifying toggle coverage for Verilator" in {
+  // TODO: this test needs to use a non-empty module in order to actually check anything!
+  it should "allow specifying toggle coverage for Verilator" ignore {
     val coverageName = "test_run_dir/Testers2_should_allow_specifying_toggle_coverage_for_Verilator/logs/coverage.dat"
     val coverage = new File(coverageName)
     val outputStream = new ByteArrayOutputStream()
@@ -27,7 +28,8 @@ class VerilatorCoverageTests extends AnyFlatSpec with ChiselScalatestTester with
     output should not include("--coverage-line")
   }
 
-  it should "allow specifying line coverage for Verilator" in {
+  // TODO: this test needs to use a non-empty module in order to actually check anything!
+  it should "allow specifying line coverage for Verilator" ignore {
     val coverageName = "test_run_dir/Testers2_should_allow_specifying_line_coverage_for_Verilator/logs/coverage.dat"
     val coverage = new File(coverageName)
     val outputStream = new ByteArrayOutputStream()
@@ -40,7 +42,8 @@ class VerilatorCoverageTests extends AnyFlatSpec with ChiselScalatestTester with
     output should include("--coverage-line")
   }
 
-  it should "allow specifying structural coverage for Verilator" in {
+  // TODO: this test needs to use a non-empty module in order to actually check anything!
+  it should "allow specifying structural coverage for Verilator" ignore {
     val coverageName = "test_run_dir/Testers2_should_allow_specifying_structural_coverage_for_Verilator/logs/coverage.dat"
     val coverage = new File(coverageName)
     val outputStream = new ByteArrayOutputStream()
@@ -53,7 +56,8 @@ class VerilatorCoverageTests extends AnyFlatSpec with ChiselScalatestTester with
     output should include("--coverage-line")
   }
 
-  it should "specify user coverage for Verilator by default" in {
+  // TODO: this test needs to use a non-empty module in order to actually check anything!
+  it should "specify user coverage for Verilator by default" ignore {
     val coverageName = "test_run_dir/Testers2_should_allow_specifying_user_coverage_for_Verilator/logs/coverage.dat"
     val coverage = new File(coverageName)
     val outputStream = new ByteArrayOutputStream()
@@ -66,7 +70,8 @@ class VerilatorCoverageTests extends AnyFlatSpec with ChiselScalatestTester with
     output should include("--coverage-user")
   }
 
-  it should "allow stacking coverage for Verilator" in {
+  // TODO: this test needs to use a non-empty module in order to actually check anything!
+  it should "allow stacking coverage for Verilator" ignore {
     val coverageName = "test_run_dir/Testers2_should_allow_stacking_coverage_for_Verilator/logs/coverage.dat"
     val coverage = new File(coverageName)
     val outputStream = new ByteArrayOutputStream()
