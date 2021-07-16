@@ -13,7 +13,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 class ClockPokeTest extends AnyFlatSpec with ChiselScalatestTester {
   behavior of "Testers2 with a clock input"
 
-  it should "work as expected" in {
+  it should "work as expected" ignore { // TODO: re-add multi clock support
     test(new Module {
       val inClock = IO(Input(Clock()))
       val out = IO(Output(UInt(8.W)))
