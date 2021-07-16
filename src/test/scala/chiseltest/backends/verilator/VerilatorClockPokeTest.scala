@@ -6,7 +6,6 @@ import chisel3.util._
 import chiseltest._
 import chiseltest.experimental.TestOptionBuilder._
 import chiseltest.experimental.UncheckedClockPoke._
-import chiseltest.internal.VerilatorBackendAnnotation
 import org.scalatest.flatspec.AnyFlatSpec
 import treadle.executable.ClockInfo
 import treadle.{ClockInfoAnnotation, WriteVcdAnnotation}

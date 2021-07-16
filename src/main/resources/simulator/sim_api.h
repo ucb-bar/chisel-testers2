@@ -23,7 +23,6 @@ const int channel_data_offset_64bw = 4;	// Offset from start of channel buffer t
 static size_t gSystemPageSize;
 
 template<class T> struct sim_data_t {
-  std::vector<T> resets;
   std::vector<T> inputs;
   std::vector<T> outputs;
   std::vector<T> signals;
@@ -174,7 +173,7 @@ public:
       size_t cmd;
       while(!recv_cmd(cmd));
       switch ((SIM_CMD) cmd) {
-        case RESET: reset(); is_reset = true; is_exit = true; break;
+        case RESET: /** no longer supported! */ break;
         case STEP: while(!recv_tokens()); step(); is_exit = true; break;
         case UPDATE: while(!recv_tokens()); update(); is_exit = true; break;
         case POKE: poke(); break; 
@@ -196,8 +195,7 @@ private:
   channel_t *out_channel;
   channel_t *cmd_channel;
 
-  virtual void reset() = 0;
-  virtual void start() = 0; 
+  virtual void start() = 0;
   virtual void finish() = 0;
   virtual void step() = 0;
   virtual void update() = 0; 

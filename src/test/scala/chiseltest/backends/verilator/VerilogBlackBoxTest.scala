@@ -6,7 +6,6 @@ import chisel3._
 import chisel3.util._
 import chiseltest._
 import chiseltest.experimental.TestOptionBuilder._
-import chiseltest.internal.VerilatorBackendAnnotation
 import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.util.Random

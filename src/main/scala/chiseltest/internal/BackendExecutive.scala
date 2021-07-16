@@ -1,24 +1,56 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package chiseltest.backends
+package chiseltest.internal
 
-import chiseltest.internal.BackendInstance
-import chisel3.experimental.BaseModule
+import chisel3.experimental.{BaseModule, DataMirror}
 import chisel3.internal.firrtl.Circuit
 import chisel3.{Data, Element, Module, Record, Vec}
+import chiseltest.coverage.Coverage
+import chiseltest.simulator.Simulator
 import firrtl.AnnotationSeq
 import firrtl.annotations.ReferenceTarget
-import firrtl.transforms.CombinationalPath
+import firrtl.transforms.{CheckCombLoops, CombinationalPath}
 
-trait BackendExecutive {
-  def getTopModule(circuit: Circuit): BaseModule = {
+object BackendExecutive {
+
+  def start[T <: Module](dutGen: () => T, testersAnnotationSeq: AnnotationSeq): GenericBackend[T] = {
+
+    // elaborate the design
+    val (highFirrtl, dut: T) = Compiler.elaborate[T](dutGen, testersAnnotationSeq)
+
+    // extract port names
+    val portNames = DataMirror.modulePorts(dut).flatMap { case (name, data) => getDataNames(name, data).toList }.toMap
+
+    // compile to low firrtl
+    val lowFirrtl = Compiler.toLowFirrtl(highFirrtl)
+
+    // extract combinatorial loops from the LoFirrtl circuit
+    val pathAnnotations = (new CheckCombLoops).execute(lowFirrtl).annotations
+    val paths = pathAnnotations.collect { case c: CombinationalPath => c }
+    val pathsAsData = combinationalPathsToData(dut, paths, portNames, componentToName)
+
+    // extract coverage information
+    val coverageAnnotations = Coverage.collectCoverageAnnotations(lowFirrtl.annotations)
+
+    // create the simulation backend
+    val sim = Simulator.getSimulator(testersAnnotationSeq)
+    val tester = sim.createContext(lowFirrtl)
+
+    new GenericBackend(dut, portNames, pathsAsData, tester, coverageAnnotations)
+  }
+
+  private def componentToName(component: ReferenceTarget): String = {
+    component.name
+  }
+
+  private def getTopModule(circuit: Circuit): BaseModule = {
     (circuit.components.find(_.name == circuit.name)).get.id
   }
 
   /** Returns a Seq of (data reference, fully qualified element names) for the input.
     * name is the name of data
     */
-  def getDataNames(name: String, data: Data): Seq[(Data, String)] = Seq(data -> name) ++ (data match {
+  private def getDataNames(name: String, data: Data): Seq[(Data, String)] = Seq(data -> name) ++ (data match {
     case _: Element => Seq()
     case b: Record  => b.elements.toSeq.flatMap { case (n, e) => getDataNames(s"${name}_$n", e) }
     case v: Vec[_]  => v.zipWithIndex.flatMap { case (e, i) => getDataNames(s"${name}_$i", e) }
@@ -35,7 +67,7 @@ trait BackendExecutive {
   //TODO: better name
   //TODO: check for aliasing in here
   //TODO graceful error message if there is an unexpected combinational path element?
-  def combinationalPathsToData(
+  private def combinationalPathsToData(
     dut:             BaseModule,
     paths:           Seq[CombinationalPath],
     dataNames:       Map[Data, String],
@@ -59,6 +91,4 @@ trait BackendExecutive {
     }
     mapPairs.toMap
   }
-
-  def start[T <: Module](dutGen: () => T, annotationSeq: AnnotationSeq): BackendInstance[T]
 }
