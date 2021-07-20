@@ -14,6 +14,7 @@ jobs:
     strategy:
       matrix:
         scala: [2.12.13, 2.13.5]
+        jvm: [adopt@1.8, adopt@1.11]
 
     steps:
       - name: Checkout
@@ -25,30 +26,9 @@ jobs:
       - name: Setup Scala
         uses: olafurpg/setup-scala@v10
         with:
-          java-version: adopt@1.8
+          java-version: ${{ matrix.jvm }}
       - name: Test
-        run: sbt ++${{ matrix.scala }} test
-
-  test-java-11:
-    name: sbt test on Java 11
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        scala: [2.12.13, 2.13.6]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Install Verilator
-        run: |
-          sudo apt-get install -y verilator
-          verilator --version
-      - name: Setup Scala
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: adopt@1.11
-      - name: Test
-        run: sbt ++${{ matrix.scala }} test
+        run: sbt ++${{ matrix.scala }} "testOnly -- -l RequiresVcs"
 
   verilator:
     name: verilator regressions
@@ -93,7 +73,7 @@ jobs:
         with:
           java-version: adopt@1.8
       - name: Test
-        run: sbt "testOnly chiseltest.backends.verilator.**"
+        run: sbt "testOnly chiseltest.backends.verilator.** ; testOnly chiseltest.simulator.Verilator**"
 
   doc:
     name: Documentation and Formatting
